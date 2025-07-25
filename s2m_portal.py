@@ -30,13 +30,13 @@ def login_page():
     username = st.text_input("Username", key="user_input")
     password = st.text_input("Password", type="password", key="pass_input")
     if st.button("Login"):
-        if username in login_df["Login ID"].values:
-            stored_password = login_df.loc[login_df["Login ID"] == username, "password"].values[0]
+        if username in login_df["Emp ID"].values:
+            stored_password = login_df.loc[login_df["Emp ID"] == username, "password"].values[0]
             if password == stored_password:
                 st.session_state.logged_in = True
                 st.session_state.login_time = datetime.now()
-                st.session_state.emp_id = login_df.loc[login_df["Login ID"] == username, "Login ID"].values[0]
-                st.session_state.emp_name = login_df.loc[login_df["Login ID"] == username, "Emp Name"].values[0]
+                st.session_state.emp_id = login_df.loc[login_df["Emp ID"] == username, "Emp ID"].values[0]
+                st.session_state.emp_name = login_df.loc[login_df["Emp ID"] == username, "Emp Name"].values[0]
                 st.success("Login successful")
                 st.experimental_rerun()
             else:
@@ -55,7 +55,7 @@ def form_page():
     if submit:
         df = pd.DataFrame([{
             "Date": date,
-            "Login ID": emp_id,
+            "Emp ID": emp_id,
             "Emp Name": emp_name,
             "Project": project,
             "Pages": pages_completed,
@@ -97,7 +97,7 @@ def log_session_end():
     login_time = st.session_state.login_time
     duration = (logout_time - login_time).total_seconds() / 3600
     df = pd.DataFrame([{
-        "Login ID": st.session_state.emp_id,
+        "Emp ID": st.session_state.emp_id,
         "Emp Name": st.session_state.emp_name,
         "Login Time": login_time.strftime("%H:%M:%S"),
         "Logout Time": logout_time.strftime("%H:%M:%S"),
