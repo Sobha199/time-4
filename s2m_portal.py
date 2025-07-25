@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
@@ -126,13 +127,6 @@ def dashboard_page():
 
         session_duration = time.time() - st.session_state.session_timer
         st.metric("Time in Current Session", str(timedelta(seconds=int(session_duration))))
-        df = pd.read_csv("data.csv")
-        charts = len(df)
-        dos = df["No of DOS"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
-        icd = df["No of Codes"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
-        working_days = df["Date"].nunique()
-        cph = round(charts / working_days, 2) if working_days else 0
-
 
         st.metric("Working Days", working_days)
         st.metric("Charts", charts)
@@ -140,21 +134,8 @@ def dashboard_page():
         st.metric("No of ICD", int(icd))
         st.metric("CPH", cph)
 
-output = BytesIO()
-user_data = df[df["Emp ID"] == st.session_state.emp_id]
-output = BytesIO()
-with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-    user_data.to_excel(writer, index=False, sheet_name='Form Data')
-    writer.save()
-    processed_data = output.getvalue()
-    
-st.download_button(
-    label="Download Completed Charts (Excel)",
-    data=processed_data,
-    file_name="completed_charts.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
-except:
+        st.download_button("Download Completed Charts (Excel)", df[df["Emp ID"] == st.session_state.emp_id].to_excel(index=False, engine='openpyxl'), "completed_charts.xlsx")
+    except:
         st.warning("No data submitted yet.")
 
     st.markdown("---")
@@ -165,7 +146,7 @@ except:
         total_logins = len(user_logs)
         total_hours = round(user_logs["Hours"].sum(), 2)
         st.metric("Total Logins", total_logins)
-        st.metric("Total Hours Logged In", total_hours)
+        st.metric("Total Hours Logged In (last 24h)", total_hours)
     else:
         st.info("No login data available.")
 
