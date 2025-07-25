@@ -41,9 +41,6 @@ def login_page():
                 st.experimental_rerun()
             else:
                 st.error("Incorrect password")
-        else:
-            st.error("Username not found")
-
 # Form page
 def form_page():
     st.title("Chart Submission Form")
