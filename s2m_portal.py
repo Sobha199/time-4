@@ -137,7 +137,7 @@ def dashboard_page():
 
         st.download_button("Download Completed Charts (Excel)", df[df["Emp ID"] == st.session_state.emp_id].to_excel(index=False, engine='openpyxl'), "completed_charts.xlsx")
     except:
-        st.warning("No data submitted yet.")
+        st.warning("Download.")
 
     st.markdown("---")
     st.markdown("### Login Tracking")
