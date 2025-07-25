@@ -139,9 +139,22 @@ def dashboard_page():
         st.metric("No of DOS", int(dos))
         st.metric("No of ICD", int(icd))
         st.metric("CPH", cph)
+from io import BytesIO
 
-        from io import BytesIO  user_data = df[df["Emp ID"] == st.session_state.emp_id] output = BytesIO() with pd.ExcelWriter(output, engine='xlsxwriter') as writer:     user_data.to_excel(writer, index=False, sheet_name='Form Data')     writer.save()     processed_data = output.getvalue()  st.download_button(     label="Download Completed Charts (Excel)",     data=processed_data,     file_name="completed_charts.xlsx",     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" )
-    except:
+user_data = df[df["Emp ID"] == st.session_state.emp_id]
+output = BytesIO()
+with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    user_data.to_excel(writer, index=False, sheet_name='Form Data')
+    writer.save()
+    processed_data = output.getvalue()
+    
+st.download_button(
+    label="Download Completed Charts (Excel)",
+    data=processed_data,
+    file_name="completed_charts.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+except:
         st.warning("No data submitted yet.")
 
     st.markdown("---")
