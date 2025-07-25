@@ -29,7 +29,7 @@ if "login_time" not in st.session_state:
 def login(username, password):
     if os.path.exists(LOGIN_CSV):
         df = pd.read_csv(LOGIN_CSV)
-        user = df[(df["User Name"] == username) & (df["Password"] == password)]
+        user = df[(df["UserName"] == username) & (df["Password"] == password)]
         if not user.empty:
             st.session_state.logged_in = True
             st.session_state.username = username
