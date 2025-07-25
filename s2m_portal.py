@@ -119,12 +119,11 @@ def dashboard_page():
     st.markdown("<h2 style='color:skyblue;'>Dashboard</h2>", unsafe_allow_html=True)
     try:
         df = pd.read_csv("data.csv")
-        charts = len(df)
-        dos = df["No of DOS"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
-        icd = df["No of Codes"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
-        working_days = df["Date"].nunique()
+        charts = len(df[df["Emp ID"] == st.session_state.emp_id])
+        dos = df[df["Emp ID"] == st.session_state.emp_id]["No of DOS"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
+        icd = df[df["Emp ID"] == st.session_state.emp_id]["No of Codes"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
+        working_days = df[df["Emp ID"] == st.session_state.emp_id]["Date"].nunique()
         cph = round(charts / working_days, 2) if working_days else 0
-
 
         session_duration = time.time() - st.session_state.session_timer
         st.metric("Time in Current Session", str(timedelta(seconds=int(session_duration))))
