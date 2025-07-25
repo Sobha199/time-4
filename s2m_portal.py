@@ -127,7 +127,7 @@ def dashboard_page():
         session_duration = time.time() - st.session_state.session_timer
         st.metric("Time in Current Session", str(timedelta(seconds=int(session_duration))))
    try:
-    if os.path.exists(SESSION_LOG_PATH):
+        if os.path.exists(SESSION_LOG_PATH):
         logs = pd.read_csv(SESSION_LOG_PATH, parse_dates=["Login Time", "Logout Time"])
         user_logs = logs[logs["Emp ID"] == st.session_state.emp_id]
 
