@@ -30,8 +30,8 @@ def login_page():
     username = st.text_input("Username", key="user_input")
     password = st.text_input("Password", type="password", key="pass_input")
     if st.button("Login"):
-        if username in login_df["username"].values:
-            stored_password = login_df.loc[login_df["username"] == username, "password"].values[0]
+        if username in login_df["user_name"].values:
+            stored_password = login_df.loc[login_df["user_name"] == username, "password"].values[0]
             if password == stored_password:
                 st.session_state.logged_in = True
                 st.session_state.login_time = datetime.now()
