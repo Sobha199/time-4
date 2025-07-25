@@ -21,11 +21,11 @@ def log_session_start(username):
 
 def login_page():
     st.title("Login Portal")
-    username = st.text_input("Login ID")
+    username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        if username in login_df["Login ID"].values:
+        if username in login_df["Username"].values:
             stored_password = login_df.loc[login_df["Login ID"] == username, "Password"].values[0]
             if password == stored_password:
                 log_session_start(username)  # ✅ this won't error now
