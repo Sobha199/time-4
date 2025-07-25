@@ -139,8 +139,8 @@ def dashboard_page():
         st.metric("No of DOS", int(dos))
         st.metric("No of ICD", int(icd))
         st.metric("CPH", cph)
-from io import BytesIO
 
+from io import BytesIO
 user_data = df[df["Emp ID"] == st.session_state.emp_id]
 output = BytesIO()
 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
