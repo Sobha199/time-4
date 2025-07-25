@@ -113,24 +113,7 @@ def form_page():
             ]], columns=form_headers)
             new_data.to_csv("data.csv", mode="a", header=not os.path.exists("data.csv"), index=False)
             st.success("Data submitted successfully!")
-            user_data = pd.read_csv(DATA_FILE)
-            user_data = user_data[user_data["Emp ID"] == emp_id]
-            st.download_button(
-                label="📥 Download Your Submitted Data",
-                data=user_data.to_csv(index=False),
-                file_name=f"{emp_name}_submitted_data.csv",
-                mime="text/csv"
-            )
-
-            st.subheader("📊 Filter Your Submitted Data")
-            user_data["Date"] = pd.to_datetime(user_data["Date"])
-            start_date = st.date_input("Start Date", user_data["Date"].min().date())
-            end_date = st.date_input("End Date", user_data["Date"].max().date())
-            mask = (user_data["Date"] >= pd.to_datetime(start_date)) & (user_data["Date"] <= pd.to_datetime(end_date))
-            filtered_data = user_data[mask]
-            st.dataframe(filtered_data)
-
-
+           
 def dashboard_page():
     st.image(logo, width=150)
     st.markdown("<h2 style='color:skyblue;'>Dashboard</h2>", unsafe_allow_html=True)
