@@ -26,21 +26,23 @@ session_log_file = "session_log.csv"
 
 # Login function
 def login_page():
-    st.title("Login Portal")
-    username = st.text_input("Username", key="user_input")
-    password = st.text_input("Password", type="password", key="pass_input")
-    if st.button("Login"):
-        if username in login_df["Emp ID"].values:
-            stored_password = login_df.loc[login_df["Emp ID"] == username, "password"].values[0]
-            if password == stored_password:
-                st.session_state.logged_in = True
-                st.session_state.login_time = datetime.now()
-                st.session_state.emp_id = login_df.loc[login_df["Emp ID"] == username, "Emp ID"].values[0]
-                st.session_state.emp_name = login_df.loc[login_df["Emp ID"] == username, "Emp Name"].values[0]
-                st.success("Login successful")
-                st.experimental_rerun()
+    st.image(logo, width=200)
+    st.markdown("<h2 style='color:skyblue;'>S2M Login Portal</h2>", unsafe_allow_html=True)
+    with st.form("login_form"):
+        username = st.text_input("Username", key="user")
+        password = st.text_input("Password", type="password", key="pass")
+        submitted = st.form_submit_button("Sign In")
+        if submitted:
+            match = login_df[(login_df["Emp ID"].astype(str) == username) & (login_df["Password"] == password)]
+            if not match.empty:
+                st.success("Login Successful")
+                st.session_state.authenticated = True
+                st.session_state.emp_id = username
+                st.session_state.emp_name = match.iloc[0]["Emp Name"]
+                st.session_state.team_lead = match.iloc[0]["Team Lead"]
+                log_session_start(username)
             else:
-                st.error("Incorrect password")
+                st.error("Invalid credentials")
 # Form page
 def form_page():
     st.title("Chart Submission Form")
