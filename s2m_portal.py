@@ -31,12 +31,12 @@ def login_page():
     password = st.text_input("Password", type="password", key="pass_input")
     if st.button("Login"):
         if username in login_df["user_name"].values:
-            stored_password = login_df.loc[login_df["user_name"] == username, "password"].values[0]
+            stored_password = login_df.loc[login_df["user_name"] == Username, "password"].values[0]
             if password == stored_password:
                 st.session_state.logged_in = True
                 st.session_state.login_time = datetime.now()
-                st.session_state.emp_id = login_df.loc[login_df["user_name"] == username, "Emp ID"].values[0]
-                st.session_state.emp_name = login_df.loc[login_df["user_name"] == username, "Emp Name"].values[0]
+                st.session_state.emp_id = login_df.loc[login_df["user_name"] == Username, "Emp ID"].values[0]
+                st.session_state.emp_name = login_df.loc[login_df["user_name"] == Username, "Emp Name"].values[0]
                 st.success("Login successful")
                 st.experimental_rerun()
             else:
