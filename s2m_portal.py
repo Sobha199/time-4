@@ -126,6 +126,22 @@ def dashboard_page():
 
         session_duration = time.time() - st.session_state.session_timer
         st.metric("Time in Current Session", str(timedelta(seconds=int(session_duration))))
+            if os.path.exists(SESSION_LOG_PATH):
+        logs = pd.read_csv(SESSION_LOG_PATH, parse_dates=["Login Time", "Logout Time"])
+        user_logs = logs[logs["Emp ID"] == st.session_state.emp_id]
+
+        total_logins = len(user_logs)
+        total_hours = round(user_logs["Hours"].sum(), 2)
+
+        # Total usage in last 24 hours
+        last_24hrs = datetime.now() - timedelta(hours=24)
+        logs_last_24 = user_logs[user_logs["Login Time"] >= last_24hrs]
+        hours_last_24 = round(logs_last_24["Hours"].sum(), 2)
+
+        st.metric("Total Logins", total_logins)
+        st.metric("Total Hours Logged In", total_hours)
+        st.metric("Usage in Last 24 Hrs", hours_last_24)
+
         df = pd.read_csv("data.csv")
         charts = len(df)
         dos = df["No of DOS"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
@@ -140,7 +156,7 @@ def dashboard_page():
         st.metric("No of ICD", int(icd))
         st.metric("CPH", cph)
 
-        st.download_button("Download Completed Charts", df[df["Emp ID"] == st.session_state.emp_id].to_csv(index=False), "completed_charts.csv")
+        from io import BytesIO  user_data = df[df["Emp ID"] == st.session_state.emp_id] output = BytesIO() with pd.ExcelWriter(output, engine='xlsxwriter') as writer:     user_data.to_excel(writer, index=False, sheet_name='Form Data')     writer.save()     processed_data = output.getvalue()  st.download_button(     label="Download Completed Charts (Excel)",     data=processed_data,     file_name="completed_charts.xlsx",     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" )
     except:
         st.warning("No data submitted yet.")
 
