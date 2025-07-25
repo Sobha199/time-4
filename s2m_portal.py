@@ -126,6 +126,7 @@ def dashboard_page():
 
         session_duration = time.time() - st.session_state.session_timer
         st.metric("Time in Current Session", str(timedelta(seconds=int(session_duration))))
+   try:
     if os.path.exists(SESSION_LOG_PATH):
         logs = pd.read_csv(SESSION_LOG_PATH, parse_dates=["Login Time", "Logout Time"])
         user_logs = logs[logs["Emp ID"] == st.session_state.emp_id]
@@ -141,6 +142,9 @@ def dashboard_page():
         st.metric("Total Logins", total_logins)
         st.metric("Total Hours Logged In", total_hours)
         st.metric("Usage in Last 24 Hrs", hours_last_24)
+except Exception as e:
+    st.info(f"No login data available or error: {e}")
+
 else:
     st.info("No login data available.")
         user_logs = logs[logs["Emp ID"] == st.session_state.emp_id]
