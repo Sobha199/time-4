@@ -1,170 +1,167 @@
 
 import streamlit as st
 import pandas as pd
+import os
 from datetime import datetime, timedelta
 from PIL import Image
-import os
-import time
 
-form_headers = [
-    "Date", "Emp ID", "Emp Name", "Project", "Project Category", 
-    "Login ID", "Login Name", "Team Lead Name", "Chart ID", "Page No", 
-    "No of DOS", "No of Codes", "Error Type", "Error Comments", 
-    "No of Errors", "Chart Status", "Auditor Emp ID", "Auditor Emp Name"
-]
+st.set_page_config(page_title="S2M Coder Portal", layout="wide")
 
-# Load login credentials and logo
-login_df = pd.read_csv("login coder.csv")
-logo = Image.open("s2m-logo.png")
+# Constants
+LOGO_PATH = "s2m-logo.png"
+DATA_FILE = "data.csv"
+LOGIN_CSV = "login coder.csv"
+SESSION_LOG_PATH = "login_sessions.csv"
 
-# Setup session logs path
-SESSION_LOG_PATH = "session_logs.csv"
+# Load logo
+if os.path.exists(LOGO_PATH):
+    st.image(LOGO_PATH, width=200)
 
-# Page config
-st.set_page_config(page_title="S2M Portal", layout="centered")
-
-# Session state init
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-    st.session_state.emp_id = ""
-    st.session_state.emp_name = ""
-    st.session_state.team_lead = ""
+# Session management
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
+if "login_time" not in st.session_state:
     st.session_state.login_time = None
-    st.session_state.session_timer = time.time()
 
-def log_session_start(emp_id):
-    now = datetime.now()
-    st.session_state.login_time = now
-    st.session_state.session_timer = time.time()
-    return now
+# Login function
+def login(username, password):
+    if os.path.exists(LOGIN_CSV):
+        df = pd.read_csv(LOGIN_CSV)
+        user = df[(df["User Name"] == username) & (df["Password"] == password)]
+        if not user.empty:
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.session_state.login_time = datetime.now()
+            return user.iloc[0]
+    return None
 
-def log_session_end():
-    if st.session_state.login_time:
+# Logout function with logging
+def logout():
+    if st.session_state.logged_in:
         logout_time = datetime.now()
-        duration = (logout_time - st.session_state.login_time).total_seconds() / 3600  # hours
-        df = pd.DataFrame([{
-            "Emp ID": st.session_state.emp_id,
-            "Emp Name": st.session_state.emp_name,
-            "Login Time": st.session_state.login_time,
+        login_time = st.session_state.login_time
+        duration = (logout_time - login_time).total_seconds() / 3600
+
+        session_df = pd.DataFrame([{
+            "User": st.session_state.username,
+            "Login Time": login_time,
             "Logout Time": logout_time,
             "Hours": round(duration, 2)
         }])
+
         if os.path.exists(SESSION_LOG_PATH):
-            df.to_csv(SESSION_LOG_PATH, mode="a", header=False, index=False)
+            session_df.to_csv(SESSION_LOG_PATH, mode="a", header=False, index=False)
         else:
-            df.to_csv(SESSION_LOG_PATH, index=False)
+            session_df.to_csv(SESSION_LOG_PATH, index=False)
 
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.session_state.login_time = None
+        st.success("Logged out successfully!")
+
+# Login Page
 def login_page():
-    st.image(logo, width=200)
-    st.markdown("<h2 style='color:skyblue;'>S2M Login Portal</h2>", unsafe_allow_html=True)
-    with st.form("login_form"):
-        username = st.text_input("Username", key="user")
-        password = st.text_input("Password", type="password", key="pass")
-        submitted = st.form_submit_button("Sign In")
-        if submitted:
-            match = login_df[(login_df["Emp ID"].astype(str) == username) & (login_df["Password"] == password)]
-            if not match.empty:
-                st.success("Login Successful")
-                st.session_state.authenticated = True
-                st.session_state.emp_id = username
-                st.session_state.emp_name = match.iloc[0]["Emp Name"]
-                st.session_state.team_lead = match.iloc[0]["Team Lead"]
-                log_session_start(username)
-            else:
-                st.error("Invalid credentials")
+    st.title("Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
+        user = login(username, password)
+        if user is not None:
+            st.success(f"Welcome {user['Emp Name']}!")
+            st.experimental_rerun()
+        else:
+            st.error("Invalid credentials")
 
-def form_page():
-    st.image(logo, width=150)
-    st.markdown("<h2 style='color:skyblue;'>Form Entry</h2>", unsafe_allow_html=True)
-    with st.form("entry_form", clear_on_submit=True):
-        today = datetime.now().strftime("%Y-%m-%d")
-        emp_id = st.session_state.emp_id
-        emp_name = st.session_state.emp_name
-        team_lead = st.session_state.team_lead
+# Form Page
+def form_page(user_info):
+    st.title("Form Submission")
+    emp_id = user_info["Emp ID"]
+    emp_name = user_info["Emp Name"]
+    project = user_info["Project"]
+    category = user_info["Project Category"]
 
-        st.write("Emp ID:", emp_id)
-        st.write("Emp Name:", emp_name)
-        st.write("Team Lead Name:", team_lead)
+    with st.form("data_form"):
+        st.write("**Auto-filled Information**")
+        st.text_input("Emp ID", emp_id, disabled=True)
+        st.text_input("Emp Name", emp_name, disabled=True)
+        st.text_input("Project", project, disabled=True)
+        st.text_input("Project Category", category, disabled=True)
 
-        project = st.selectbox("Project", ["Elevance MA", "Elevance ACA", "Health OS"])
-        category = st.selectbox("Project Category", ["Entry", "Recheck", "QA"])
-        login_names = login_df["Login Name"].unique().tolist()
-        login_name = st.selectbox("Login Name", login_names)
-        login_id = login_df[login_df["Login Name"] == login_name]["Login ID"].values[0]
-
+        st.write("**Fill Your Production Details**")
         chart_id = st.text_input("Chart ID")
-        page_no = st.text_input("Page No")
-        dos = st.text_input("No of DOS")
-        codes = st.text_input("No of Codes")
-        error_type = st.text_input("Error Type")
-        error_comments = st.text_input("Error Comments")
-        no_of_errors = st.text_input("No of Errors")
-        chart_status = st.text_input("Chart Status")
-        auditor_emp_id = st.text_input("Auditor Emp ID")
-        auditor_emp_name = st.text_input("Auditor Emp Name")
+        page_no = st.number_input("Page No", min_value=0)
+        dos = st.number_input("No of DOS", min_value=0)
+        codes = st.number_input("No of Codes", min_value=0)
+        error_type = st.selectbox("Error Type", ["None", "Minor", "Major", "Critical"])
+        error_comments = st.text_area("Error Comments")
 
         submit = st.form_submit_button("Submit")
         if submit:
-            new_data = pd.DataFrame([[
-                today, emp_id, emp_name, project, category,
-                login_id, login_name, team_lead, chart_id, page_no,
-                dos, codes, error_type, error_comments,
-                no_of_errors, chart_status, auditor_emp_id, auditor_emp_name
-            ]], columns=form_headers)
-            new_data.to_csv("data.csv", mode="a", header=not os.path.exists("data.csv"), index=False)
+            new_data = pd.DataFrame([{
+                "Date": datetime.now().strftime("%Y-%m-%d"),
+                "Emp ID": emp_id,
+                "Emp Name": emp_name,
+                "Project": project,
+                "Project Category": category,
+                "Chart ID": chart_id,
+                "Page No": page_no,
+                "No of DOS": dos,
+                "No of Codes": codes,
+                "Error Type": error_type,
+                "Error Comments": error_comments
+            }])
+            if os.path.exists(DATA_FILE):
+                new_data.to_csv(DATA_FILE, mode="a", header=False, index=False)
+            else:
+                new_data.to_csv(DATA_FILE, index=False)
             st.success("Data submitted successfully!")
 
+            user_data = pd.read_csv(DATA_FILE)
+            user_data = user_data[user_data["Emp ID"] == emp_id]
+            st.download_button(
+                label="📥 Download Your Submitted Data",
+                data=user_data.to_csv(index=False),
+                file_name=f"{emp_name}_submitted_data.csv",
+                mime="text/csv"
+            )
+
+            st.subheader("📊 Filter Your Submitted Data")
+            user_data["Date"] = pd.to_datetime(user_data["Date"])
+            start_date = st.date_input("Start Date", user_data["Date"].min().date())
+            end_date = st.date_input("End Date", user_data["Date"].max().date())
+            mask = (user_data["Date"] >= pd.to_datetime(start_date)) & (user_data["Date"] <= pd.to_datetime(end_date))
+            filtered_data = user_data[mask]
+            st.dataframe(filtered_data)
+
+# Dashboard Page
 def dashboard_page():
-    st.image(logo, width=150)
-    st.markdown("<h2 style='color:skyblue;'>Dashboard</h2>", unsafe_allow_html=True)
-    try:
-        df = pd.read_csv("data.csv")
-        charts = len(df)
-        dos = df["No of DOS"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
-        icd = df["No of Codes"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
-        working_days = df["Date"].nunique()
-        cph = round(charts / working_days, 2) if working_days else 0
+    st.title("Dashboard")
+    if not os.path.exists("login_sessions.csv"):
+        st.warning("No session logs found.")
+        return
 
+    logs = pd.read_csv("login_sessions.csv", parse_dates=["Login Time", "Logout Time"])
+    user_logs = logs[logs["User"] == st.session_state.username]
 
-        session_duration = time.time() - st.session_state.session_timer
-        st.metric("Time in Current Session", str(timedelta(seconds=int(session_duration))))
+    st.metric("Total Logins", len(user_logs))
+    total_seconds = round(user_logs["Hours"].sum() * 3600)
+    cumulative_time = str(timedelta(seconds=total_seconds))
+    st.metric("Total Time Logged In", cumulative_time)
+    st.dataframe(user_logs)
 
-        st.metric("Working Days", working_days)
-        st.metric("Charts", charts)
-        st.metric("No of DOS", int(dos))
-        st.metric("No of ICD", int(icd))
-        st.metric("CPH", cph)
-
-        st.download_button("Download Completed Charts (Excel)", df[df["Emp ID"] == st.session_state.emp_id].to_excel(index=False, engine='openpyxl'), "completed_charts.xlsx")
-    except:
-        st.warning("No data submitted yet.")
-
-    st.markdown("---")
-    st.markdown("### Login Tracking")
-    if os.path.exists(SESSION_LOG_PATH):
-        logs = pd.read_csv(SESSION_LOG_PATH)
-        user_logs = logs[logs["Emp ID"] == st.session_state.emp_id]
-        total_logins = len(user_logs)
-        total_hours = round(user_logs["Hours"].sum(), 2)
-        st.metric("Total Logins", total_logins)
-        st.metric("Total Hours Logged In (last 24h)", total_hours)
-    else:
-        st.info("No login data available.")
-
-# App Flow
-if not st.session_state.authenticated:
+# Main
+if not st.session_state.logged_in:
     login_page()
 else:
-    page = st.sidebar.radio("Navigate", ["Form", "Dashboard", "Logout"])
-    if page == "Form":
-        form_page()
-    elif page == "Dashboard":
+    menu = st.sidebar.selectbox("Menu", ["Form", "Dashboard", "Logout"])
+    if menu == "Form":
+        df = pd.read_csv(LOGIN_CSV)
+        user_info = df[df["User Name"] == st.session_state.username].iloc[0]
+        form_page(user_info)
+    elif menu == "Dashboard":
         dashboard_page()
-    elif page == "Logout":
-        log_session_end()
-        st.session_state.authenticated = False
-        st.session_state.emp_id = ""
-        st.session_state.emp_name = ""
-        st.session_state.team_lead = ""
-        st.session_state.login_time = None
-        st.success("Logged out successfully.")
+    elif menu == "Logout":
+        logout()
+        st.experimental_rerun()
