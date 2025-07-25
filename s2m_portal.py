@@ -15,34 +15,30 @@ st.image(logo, width=150)
 # Load login data
 login_df = pd.read_csv("login coder.csv")
 
-# Login state
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "login_time" not in st.session_state:
-    st.session_state.login_time = None
+def log_session_start(username):
+    st.session_state["login_time"] = datetime.now()
+    st.session_state["login_user"] = username
 
-# Session log file
-session_log_file = "session_log.csv"
-
-# Login function
 def login_page():
-    st.image(logo, width=200)
-    st.markdown("<h2 style='color:skyblue;'>S2M Login Portal</h2>", unsafe_allow_html=True)
-    with st.form("login_form"):
-        username = st.text_input("Username", key="user")
-        password = st.text_input("Password", type="password", key="pass")
-        submitted = st.form_submit_button("Sign In")
-        if submitted:
-            match = login_df[(login_df["Emp ID"].astype(str) == username) & (login_df["Password"] == password)]
-            if not match.empty:
-                st.success("Login Successful")
-                st.session_state.authenticated = True
-                st.session_state.emp_id = username
-                st.session_state.emp_name = match.iloc[0]["Emp Name"]
-                st.session_state.team_lead = match.iloc[0]["Team Lead"]
-                log_session_start(username)
+    st.title("Login Portal")
+    username = st.text_input("Login ID")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username in login_df["Login ID"].values:
+            stored_password = login_df.loc[login_df["Login ID"] == username, "Password"].values[0]
+            if password == stored_password:
+                log_session_start(username)  # ✅ this won't error now
+                st.session_state.logged_in = True
+                st.session_state.emp_id = login_df.loc[login_df["Login ID"] == username, "Emp ID"].values[0]
+                st.session_state.emp_name = login_df.loc[login_df["Login ID"] == username, "Emp Name"].values[0]
+                st.success("Login successful")
+                st.experimental_rerun()
             else:
-                st.error("Invalid credentials")
+                st.error("Incorrect password")
+        else:
+            st.error("Login ID not found")
+
 # Form page
 def form_page():
     st.title("Chart Submission Form")
