@@ -135,7 +135,8 @@ def dashboard_page():
         st.metric("No of ICD", int(icd))
         st.metric("CPH", cph)
 
-        st.download_button("Download Completed Charts (Excel)", df[df["Emp ID"] == st.session_state.emp_id].to_excel(index=False, engine='openpyxl'), "completed_charts.xlsx")
+         st.download_button("Download Dashboard Data", data=df.to_csv(index=False).encode("utf-8"),
+                           file_name="dashboard_data.csv", mime="text/csv")
     except:
         st.warning("Download.")
 
