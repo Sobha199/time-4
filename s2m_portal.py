@@ -133,12 +133,14 @@ def dashboard_page():
         st.metric("Charts", charts)
         st.metric("No of DOS", int(dos))
         st.metric("No of ICD", int(icd))
-        st.metric("CPH", cph)
+               st.metric("CPH", cph)
 
-         st.download_button("Download Dashboard Data", data=df.to_csv(index=False).encode("utf-8"),
-                           file_name="dashboard_data.csv", mime="text/csv")
-    except:
-        st.warning("Download.")
+        st.download_button(
+            "Download Dashboard Data",
+            data=df.to_csv(index=False).encode("utf-8"),
+            file_name="dashboard_data.csv",
+            mime="text/csv"
+        )
 
     st.markdown("---")
     st.markdown("### Login Tracking")
