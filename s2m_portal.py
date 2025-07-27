@@ -117,7 +117,7 @@ def form_page():
 def dashboard_page():
     st.image(logo, width=150)
     st.markdown("<h2 style='color:skyblue;'>Dashboard</h2>", unsafe_allow_html=True)
-    try:
+        try:
         df = pd.read_csv("data.csv")
         charts = len(df)
         dos = df["No of DOS"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
@@ -125,10 +125,8 @@ def dashboard_page():
         working_days = df["Date"].nunique()
         cph = round(charts / working_days, 2) if working_days else 0
 
-
         session_duration = time.time() - st.session_state.session_timer
         st.metric("Time in Current Session", str(timedelta(seconds=int(session_duration))))
-
         st.metric("Working Days", working_days)
         st.metric("Charts", charts)
         st.metric("No of DOS", int(dos))
@@ -141,6 +139,9 @@ def dashboard_page():
             file_name="dashboard_data.csv",
             mime="text/csv"
         )
+    except Exception as e:
+        st.warning(f"Error loading dashboard data: {e}")
+
 
     st.markdown("---")
     st.markdown("### Login Tracking")
