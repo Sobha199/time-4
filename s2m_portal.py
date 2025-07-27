@@ -133,7 +133,7 @@ def dashboard_page():
         st.metric("Charts", charts)
         st.metric("No of DOS", int(dos))
         st.metric("No of ICD", int(icd))
-               st.metric("CPH", cph)
+        st.metric("CPH", cph)
 
         st.download_button(
             "Download Dashboard Data",
