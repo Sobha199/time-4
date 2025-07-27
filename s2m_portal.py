@@ -117,7 +117,7 @@ def form_page():
 def dashboard_page():
     st.image(logo, width=150)
     st.markdown("<h2 style='color:skyblue;'>Dashboard</h2>", unsafe_allow_html=True)
-        try:
+    try:
         df = pd.read_csv("data.csv")
         charts = len(df)
         dos = df["No of DOS"].astype(str).apply(pd.to_numeric, errors='coerce').sum()
